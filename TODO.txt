@@ -1,0 +1,3 @@
+1. implement multiple times job
+2. time the whole process (time cmd or omp)
+3. report the final results 
