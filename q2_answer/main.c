@@ -77,27 +77,29 @@ void reportResults(double production_time) {
 	printf("=====Final report=====\n");
 
 	sem_getvalue(&sem_skeleton, sem_value);
-	printf("Skeleton: %d\n",   *sem_value);
+	printf("Unused Skeleton: %d\n",   *sem_value);
 	sem_getvalue(&sem_engine,   sem_value);
-	printf("Engine: %d\n",     *sem_value);
+	printf("Unused Engine: %d\n",     *sem_value);
 	sem_getvalue(&sem_chassis,  sem_value);
-	printf("Chassis: %d\n",    *sem_value);
+	printf("Unused Chassis: %d\n",    *sem_value);
 	sem_getvalue(&sem_body,     sem_value);
-	printf("Body: %d\n",       *sem_value);
+	printf("Unused Body: %d\n",       *sem_value);
 	sem_getvalue(&sem_window,   sem_value);
-	printf("Window: %d\n",     *sem_value);
+	printf("Unused Window: %d\n",     *sem_value);
 	sem_getvalue(&sem_tire,     sem_value);
-	printf("Tire: %d\n",       *sem_value);
+	printf("Unused Tire: %d\n",       *sem_value);
 	sem_getvalue(&sem_battery,  sem_value);
-	printf("Battery: %d\n",    *sem_value);
+	printf("Unused Battery: %d\n",    *sem_value);
 
 	sem_getvalue(&sem_space, sem_value);
 	if (*sem_value < num_spaces) {
-		printf("There are waste car parts! \n");
+		printf("There are waste car parts!\n");
 	}
 	sem_getvalue(&sem_car, sem_value);
-	printf("Production of %d cars done, production time: %f sec, space usage: %d\n", 
-			*sem_value, production_time, num_spaces);
+	printf("Production of %d %s done, production time: %f sec, space usage: %d\n", 
+			*sem_value,
+			*sem_value > 1 ? "cars" : "car",	       
+			production_time, num_spaces);
 	printf("==========\n");
 	free(sem_value);
 }
