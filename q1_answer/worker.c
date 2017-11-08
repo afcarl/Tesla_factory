@@ -1,15 +1,13 @@
 #include "worker.h"
 
-void *work(void *arg) {
+void work(work_pack *arg) {
 	work_pack *wpack = (work_pack *)arg;
 	int tid = wpack->tid;
 	int jid = wpack->jid; 
 	int times = wpack->times;
 	resource_pack *pack = wpack->resource;
 	int space_limit = pack->space_limit;
-	int num_workers = pack->num_workers;
 	sem_t *sem_space    = pack->sem_space;   
-	sem_t *sem_worker   = pack->sem_worker;   
 	sem_t *sem_skeleton = pack->sem_skeleton;
 	sem_t *sem_engine   = pack->sem_engine;  
 	sem_t *sem_chassis  = pack->sem_chassis; 
@@ -18,6 +16,11 @@ void *work(void *arg) {
 	sem_t *sem_tire     = pack->sem_tire;    
 	sem_t *sem_battery  = pack->sem_battery; 
 	sem_t *sem_car      = pack->sem_car;
+
+	// We don't need these 2 veriables as there's only 1 worker in q1
+//	int num_workers = pack->num_workers;
+//	sem_t *sem_worker   = pack->sem_worker;   
+
 #if DEBUG
 	printf("Worker[%d]: working on job %d for %d %s...\n", 
 			tid, jid, times, times > 1 ? "times" : "time");
@@ -81,9 +84,7 @@ void *work(void *arg) {
 				break;
 		}
 	}
-	reportJobDone(sem_worker, num_workers);
 #if DEBUG
 	printf("Worker[%d]: job %d done!\n", tid, jid);
 #endif
-	pthread_exit(NULL);
 }

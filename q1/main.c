@@ -21,6 +21,7 @@ int num_workers;
 
 int main(int argc, char** argv)
 {
+	/*---------- For future use-------
 	if (argc < 4) {
 		printf("Usage: %s <number of cars> <number of spaces> <number of workers>\n", 
 				argv[0]);
@@ -29,46 +30,47 @@ int main(int argc, char** argv)
 	num_cars     = atoi(argv[1]);
 	num_spaces   = atoi(argv[2]);
 	num_workers  = atoi(argv[3]);
+	--------------------------------*/
+	
+	// We only make one car with 1 thread and sufficient storage spaces
+	num_cars     = 1; 
+	num_spaces   = 20;
+	num_workers  = 1;
 	printf("Job defined, %d workers will build %d cars with %d storage spaces\n",
 			num_workers, num_cars, num_spaces);
+
 	resource_pack *rpack = (struct resource_pack*) malloc(sizeof(struct resource_pack));
+
+	// put semaphores into resource_pack
 	initResourcePack(rpack, num_spaces, num_workers);
 
+	// prepare work_pack
+	work_pack wpack; 
+	wpack.resource = rpack;
+	wpack.tid = 0;
+
+	// Start working and time the whole process
 	int i;
-	int *num_car_made = malloc(sizeof(int));
-	*num_car_made = 0;
-	pthread_t workers[num_workers];
-	work_pack wpacks[num_workers]; 
 	double production_time = omp_get_wtime();
-	while(*num_car_made < num_cars) {
-		for(i = 0; i < num_workers; i++) {
-			sem_wait(&sem_worker);
-			wpacks[i].tid = i;
-			wpacks[i].jid = i % 8;
-			if((i % 8) == WINDOW) wpacks[i].times = 7;
-			else if((i % 8) == TIRE) wpacks[i].times = 4;
-			else wpacks[i].times = 1;
-			wpacks[i].resource = rpack;
-			if(pthread_create(&workers[i], NULL, work, &wpacks[i])) {
-				fprintf(stderr, "error: pthread_create, worker:%d\n", i);
-				return EXIT_FAILURE;
-			}
-		}
-
-		for(i = 0; i < num_workers; i++) {
-			pthread_join(workers[i], NULL);
-		}
-
-		sem_getvalue(&sem_car, num_car_made);
+	// 8 production tasks to be done and their job ID is from 0 to 7
+	for(i = 0; i < 8; i++) { 
+		// Assign job ID to wpack.jid
+		wpack.jid = i;
+		printf("-----Main: worker %d doing %d...\n", wpack.tid, wpack.jid);
+		// We need 7 windows and 4 tires to make a car,
+		// so when i equal to WINDOW and TIRE we need to set wpack.times to
+		// 7 and 4 respectively. Otherwise set times to 1
+		if(i == WINDOW) wpack.times = 7;
+		else if(i == TIRE) wpack.times = 4;
+		else wpack.times = 1;
+		// Call work function and pass the pointer of wpack as parameter
+		work(&wpack);
 	}
-
 	production_time = omp_get_wtime() - production_time;
-
 	reportResults(production_time);
 
 	destroySem();
 	free(rpack);
-	free(num_car_made);
 	return EXIT_SUCCESS;
 }
 
@@ -93,7 +95,7 @@ void reportResults(double production_time) {
 
 	sem_getvalue(&sem_space, sem_value);
 	if (*sem_value < num_spaces) {
-		printf("There are waste car parts! Waste list:\n");
+		printf("There are waste car parts!\n");
 	}
 	sem_getvalue(&sem_car, sem_value);
 	printf("Production of %d cars done, production time: %f sec, space usage: %d\n", 

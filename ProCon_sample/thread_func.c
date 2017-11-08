@@ -24,14 +24,6 @@ void *producer(void *arg)
 	printf("th[%d] item(%p) posted, %d\n", 
 			tid, item, *num_sem);
 
-	sleep(1);
-	sem_post(item);
-	sem_post(item);
-	sem_post(item);
-	sem_getvalue(item, num_sem);
-	printf("th[%d] item(%p) post 3 times, %d\n", 
-			tid, item, *num_sem);
-
 	free(num_sem);
 	pthread_exit(0);
 }
@@ -62,12 +54,6 @@ void *consumer(void *arg)
 	printf("th[%d] space(%p) posted, %d\n", 
 			tid, space, *num_sem);
 
-	sem_post(item);
-	sem_post(item);
-	sem_post(item);
-	sem_getvalue(item, num_sem);
-	printf("th[%d] item(%p) post 3 times, %d\n", 
-			tid, item, *num_sem);
 	free(num_sem);
 	pthread_exit(0);
 }

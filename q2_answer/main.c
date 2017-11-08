@@ -93,7 +93,7 @@ void reportResults(double production_time) {
 
 	sem_getvalue(&sem_space, sem_value);
 	if (*sem_value < num_spaces) {
-		printf("There are waste car parts! Waste list:\n");
+		printf("There are waste car parts! \n");
 	}
 	sem_getvalue(&sem_car, sem_value);
 	printf("Production of %d cars done, production time: %f sec, space usage: %d\n", 
