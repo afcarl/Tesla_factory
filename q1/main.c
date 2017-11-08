@@ -55,16 +55,17 @@ int main(int argc, char** argv)
 	// 8 production tasks to be done and their job ID is from 0 to 7
 	for(i = 0; i < 8; i++) { 
 		// Assign job ID to wpack.jid
-		wpack.jid = i;
 		printf("-----Main: worker %d doing %d...\n", wpack.tid, wpack.jid);
 		// We need 7 windows and 4 tires to make a car,
-		// so when i equal to WINDOW and TIRE we need to set wpack.times to
+
+		// when i equal to WINDOW and TIRE we need to set wpack.times to
+
 		// 7 and 4 respectively. Otherwise set times to 1
-		if(i == WINDOW) wpack.times = 7;
-		else if(i == TIRE) wpack.times = 4;
-		else wpack.times = 1;
+
+
 		// Call work function and pass the pointer of wpack as parameter
-		work(&wpack);
+		
+
 	}
 	production_time = omp_get_wtime() - production_time;
 	reportResults(production_time);
