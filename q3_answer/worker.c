@@ -21,6 +21,7 @@ void *work(void *arg) {
 #if DEBUG
 	printf("Worker[%d]: working on job %d for %d %s...\n", 
 			tid, jid, times, times > 1 ? "times" : "time");
+//	printf("wpack->jid = %p, jid = %d, wpack->jid = %d\n", &wpack->jid, jid, wpack->jid);
 #endif
 	int i;
 	for (i = 0; i < times; i++)

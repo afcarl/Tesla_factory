@@ -35,41 +35,88 @@ int main(int argc, char** argv)
 	initResourcePack(rpack, num_spaces, num_workers);
 
 	int i;
-	int *num_car_made = malloc(sizeof(int));
-	*num_car_made = 0;
-	pthread_t workers[num_workers];
-	work_pack wpacks[num_workers]; 
+	int num_car_made = 0; 
+	pthread_t *workers = malloc(num_workers * sizeof(pthread_t));
+	work_pack *wpacks = malloc(num_workers * sizeof(work_pack)); 
 	double production_time = omp_get_wtime();
-	while(*num_car_made < num_cars) {
-		for(i = 0; i < num_workers; i++) {
-			sem_wait(&sem_worker);
-			wpacks[i].tid = i;
-			wpacks[i].jid = i % 8;
-			if((i % 8) == WINDOW) wpacks[i].times = 7;
-			else if((i % 8) == TIRE) wpacks[i].times = 4;
-			else wpacks[i].times = 1;
-			wpacks[i].resource = rpack;
-			if(pthread_create(&workers[i], NULL, work, &wpacks[i])) {
-				fprintf(stderr, "error: pthread_create, worker:%d\n", i);
-				return EXIT_FAILURE;
-			}
-		}
-
-		for(i = 0; i < num_workers; i++) {
-			pthread_join(workers[i], NULL);
-		}
-
-		sem_getvalue(&sem_car, num_car_made);
+	int parts_cnt[8];
+	for (i = 0; i < 8; i++){
+		parts_cnt[i] = num_cars;
+	}
+	int job_order[8]; 
+	if(num_workers < 3) {
+		job_order[0] = 3;
+		job_order[4] = 7;
+		for(i = 0; i < 3; i++) job_order[i+1] = i;
+		for(i = 4; i < 7; i++) job_order[i+1] = i;
+	}
+	else {
+		job_order[0] = 3;
+		job_order[1] = 7;
+		for(i = 0; i < 3; i++) job_order[i+2] = i;
+		for(i = 4; i < 7; i++) job_order[i+1] = i;
 	}
 
+	for(i = 0; i < 8; i++) {
+		printf("job_order[%d] = %d\n", i, job_order[i]);
+	}
+
+
+	int *workerId = malloc(sizeof(int));
+	while (num_car_made < num_cars) {
+		for(i = 0; i < 8 ; i++) {
+			int j;
+			int parts = 0;
+			for (j = 0; j < 8; j++){
+				parts += parts_cnt[j];
+			}
+			if( parts == 0) {
+				break;
+			}
+			if(parts_cnt[job_order[i]] > 0) {
+				sem_wait(&sem_worker);
+				sem_getvalue(&sem_worker, workerId);
+				wpacks[i].tid = *workerId;
+				wpacks[i].jid = job_order[i];
+				wpacks[i].resource = rpack;
+				parts_cnt[job_order[i]] -= 1;
+				if(job_order[i] == WINDOW) wpacks[i].times = 7; 
+				else if(job_order[i] == TIRE) wpacks[i].times = 4; 
+				else wpacks[i].times = 1;
+				if(pthread_create(&workers[i], NULL, work, &wpacks[i])) {
+					fprintf(stderr, "error: pthread_create, worker:%d\n", i);
+					exit(EXIT_FAILURE);
+				}
+			}
+		}
+		sem_getvalue(&sem_car, &num_car_made);
+	}	
 	production_time = omp_get_wtime() - production_time;
 
 	reportResults(production_time);
 
 	destroySem();
 	free(rpack);
-	free(num_car_made);
 	return EXIT_SUCCESS;
+}
+
+void createWorker(int* parts_cnt, pthread_t *workers, work_pack *wpacks, resource_pack *rpack, int i){
+	int *workerId = malloc(sizeof(int));
+	printf("i = %d\n", i);
+	if(parts_cnt[i] > 0) {
+		sem_getvalue(&sem_worker, workerId);
+		wpacks[i].tid = *workerId;
+		wpacks[i].jid = i;
+		wpacks[i].resource = rpack;
+		if((i % 8) == WINDOW) wpacks[i].times = 7;
+		else if((i % 8) == TIRE) wpacks[i].times = 4;
+		else wpacks[i].times = 1;
+		parts_cnt[i]--;
+		if(pthread_create(&workers[i], NULL, work, &wpacks[i])) {
+			fprintf(stderr, "error: pthread_create, worker:%d\n", i);
+			exit(EXIT_FAILURE);
+		}
+	}
 }
 
 void reportResults(double production_time) {

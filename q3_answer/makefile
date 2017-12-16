@@ -1,7 +1,7 @@
 OBJS = main.o job.o worker.o
 CC = gcc
 DEBUG = -g
-CFLAGS = -Wall -fopenmp -pthread -std=c99 
+CFLAGS = -Wall -fopenmp -pthread #-std=c99 
 
 all: tesla_factory.out
 

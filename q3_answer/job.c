@@ -54,9 +54,10 @@ void makeItem(sem_t *space, int makeTime, sem_t* item) {
 	sem_post(item);
 }
 
-void getItem(sem_t *space, int space_limit, sem_t *item) {
-	sem_wait(item);
-	releaseSpace(space, space_limit);
+int getItem(sem_t *space, int space_limit, sem_t *item) {
+	int result = sem_trywait(item);
+	if(result == 0) releaseSpace(space, space_limit);
+	return result; 
 }
 
 void makeSkeleton(sem_t *sem_space, sem_t *sem_skeleton) {
@@ -86,26 +87,29 @@ void makeBattery(sem_t *sem_space, sem_t *sem_battery ) {
 
 void makeBody(sem_t *sem_space, int space_limit, sem_t *sem_body,
 		sem_t *sem_skeleton, sem_t *sem_engine, sem_t *sem_chassis) {
-	getItem(sem_space, space_limit, sem_skeleton);
-	getItem(sem_space, space_limit, sem_engine);
-	getItem(sem_space, space_limit, sem_chassis);
+	int num_ske, num_eng, num_cha;
+	num_ske = 0; num_eng = 0; num_cha = 0;
+	while(num_ske < 1 || num_eng < 1 || num_cha < 1) {	
+		if(num_ske < 1 && getItem(sem_space, space_limit, sem_skeleton) == 0) num_ske++;
+		if(num_eng < 1 && getItem(sem_space, space_limit, sem_engine)   == 0) num_eng++;
+		if(num_cha < 1 && getItem(sem_space, space_limit, sem_chassis)  == 0) num_cha++;
+	}
 	makeItem(sem_space, TIME_BODY, sem_body);
 }
 
 void makeCar(sem_t *sem_space, int space_limit, sem_t *sem_car,
 		sem_t *sem_window, sem_t *sem_tire, sem_t *sem_battery, sem_t *sem_body) {
-	int i;
-	// call getItem 7 times to get 7 windows
-	for(i = 0; i < 7; i++) getItem(sem_space, space_limit, sem_window);
-	// call getItem 4 times to get 4 tires
-	for(i = 0; i < 4; i++) getItem(sem_space, space_limit, sem_tire);
-	// call getItem to get a battery pack
-	getItem(sem_space, space_limit, sem_battery);
-	// call getItem to get a car body
-	getItem(sem_space, space_limit, sem_body);
-	// assembly car by sleep ^_^
+	int num_win, num_tir, num_bat, num_bod;
+	num_win = 0; num_tir = 0; num_bat = 0;  num_bod = 0;
+	printf("num_win = %d, num_tir = %d, num_bat = %d, num_bod = %d\n", num_win, num_tir, num_bat, num_bod);
+	while(num_win < 7 || num_tir < 4 || num_bat < 1 || num_bod < 1) {
+		if(num_bod < 1 && getItem(sem_space, space_limit, sem_body)   == 0) num_bod++;
+		if(num_win < 7 && getItem(sem_space, space_limit, sem_window) == 0) num_win++;
+		if(num_tir < 4 && getItem(sem_space, space_limit, sem_tire)   == 0) num_tir++;
+		if(num_bat < 1 && getItem(sem_space, space_limit, sem_battery)== 0) num_bat++;
+	}
+	printf("num_win = %d, num_tir = %d, num_bat = %d, num_bod = %d\n", num_win, num_tir, num_bat, num_bod);
 	sleep(TIME_CAR);
-	// notify the completion of making a car by post to sem_car
 	sem_post(sem_car);
 }
 

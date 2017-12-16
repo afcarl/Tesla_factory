@@ -15,5 +15,5 @@ void makeCar(sem_t *sem_space, int space_limit, sem_t *sem_car,
 int requestSpace(sem_t *space);
 void releaseSpace(sem_t *space, int space_limit);
 void makeItem(sem_t *space, int makeTime, sem_t* item);
-void getItem(sem_t *space, int space_limit, sem_t *item);
+int getItem(sem_t *space, int space_limit, sem_t *item);
 void reportJobDone(sem_t *sem_worker, int num_worker);
