@@ -101,14 +101,12 @@ void makeCar(sem_t *sem_space, int space_limit, sem_t *sem_car,
 		sem_t *sem_window, sem_t *sem_tire, sem_t *sem_battery, sem_t *sem_body) {
 	int num_win, num_tir, num_bat, num_bod;
 	num_win = 0; num_tir = 0; num_bat = 0;  num_bod = 0;
-	printf("num_win = %d, num_tir = %d, num_bat = %d, num_bod = %d\n", num_win, num_tir, num_bat, num_bod);
 	while(num_win < 7 || num_tir < 4 || num_bat < 1 || num_bod < 1) {
 		if(num_bod < 1 && getItem(sem_space, space_limit, sem_body)   == 0) num_bod++;
 		if(num_win < 7 && getItem(sem_space, space_limit, sem_window) == 0) num_win++;
 		if(num_tir < 4 && getItem(sem_space, space_limit, sem_tire)   == 0) num_tir++;
 		if(num_bat < 1 && getItem(sem_space, space_limit, sem_battery)== 0) num_bat++;
 	}
-	printf("num_win = %d, num_tir = %d, num_bat = %d, num_bod = %d\n", num_win, num_tir, num_bat, num_bod);
 	sleep(TIME_CAR);
 	sem_post(sem_car);
 }

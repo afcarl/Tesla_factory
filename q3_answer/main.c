@@ -57,11 +57,6 @@ int main(int argc, char** argv)
 		for(i = 4; i < 7; i++) job_order[i+1] = i;
 	}
 
-	for(i = 0; i < 8; i++) {
-		printf("job_order[%d] = %d\n", i, job_order[i]);
-	}
-
-
 	int *workerId = malloc(sizeof(int));
 	while (num_car_made < num_cars) {
 		for(i = 0; i < 8 ; i++) {
@@ -102,7 +97,6 @@ int main(int argc, char** argv)
 
 void createWorker(int* parts_cnt, pthread_t *workers, work_pack *wpacks, resource_pack *rpack, int i){
 	int *workerId = malloc(sizeof(int));
-	printf("i = %d\n", i);
 	if(parts_cnt[i] > 0) {
 		sem_getvalue(&sem_worker, workerId);
 		wpacks[i].tid = *workerId;
